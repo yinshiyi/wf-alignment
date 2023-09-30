@@ -30,7 +30,7 @@ process alignReads {
             error "`input_type` must be either 'fastq' or 'ubam'."
         }
     """
-    ${(input_type == "fastq") ? "gzcat $input" : "samtools fastq -T '*' $input"} \
+    ${(input_type == "fastq") ? "zcat $input" : "samtools fastq -T '*' $input"} \
     | minimap2 -t $params.mapping_threads $minimap_args $combined_refs - \
     | samtools sort -@ ${params.sorting_threads - 1} -o $bam_name -
     """
