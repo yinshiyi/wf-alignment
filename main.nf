@@ -25,21 +25,21 @@ process alignReads {
         tuple val(meta), path(bam_name)
     script:
         def sample_name = meta["alias"]
+    	def cat_cmd
         bam_name = "${sample_name}.sorted.aligned.bam"
         if (!(input_type in ["fastq", "ubam"])) {
             error "`input_type` must be either 'fastq' or 'ubam'."
         }
+    	if (input_type == "fastq") {
+     	    if (input.toString().endsWith("gz")) {
+     	           cat_cmd = "gunzip -c"
+    	    } else {
+     	           cat_cmd = "cat"
+     		}
+       	} else {
+       	     cat_cmd = "samtools fastq -T '*'"
+      	}
     """
-    if [[ "$input_type" == "fastq" ]]; then
-        if [[ "$input" == *gz ]]; then
-            cat_cmd="zcat"
-        else
-            cat_cmd="cat"
-        fi
-    else
-        cat_cmd="samtools fastq -T '*'"
-    fi
-
     $cat_cmd $input \
     | minimap2 -t $params.mapping_threads $minimap_args $combined_refs - \
     | samtools sort -@ ${params.sorting_threads - 1} -o $bam_name -
